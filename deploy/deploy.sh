@@ -5,7 +5,9 @@
 #   JEEDOM_HOST=<IP_BOX> DOCKER_CONTAINER=jeedom ./deploy/deploy.sh   (Jeedom en Docker)
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"          # racine du plugin (gf_jee)
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"          # racine du plugin (jeefather)
+# charge .env local (gitignore, jamais commite) si present : JEEDOM_HOST, etc.
+if [ -f "$ROOT/.env" ]; then set -a; . "$ROOT/.env"; set +a; fi
 PLUGIN_ID="jeefather"
 JEEDOM_HOST="${JEEDOM_HOST:? renseigne JEEDOM_HOST (IP/hostname de la box)}"
 JEEDOM_USER="${JEEDOM_USER:-root}"
@@ -23,7 +25,7 @@ trap 'rm -rf "$TMP"' EXIT
 echo "==> Preparation du paquet"
 mkdir -p "$TMP/$PLUGIN_ID"
 (cd "$ROOT" && find . -type f \
-	-not -path './tests/*' -not -path './deploy/*' -not -path './.git/*' -not -name '.gitignore' \
+	-not -path './tests/*' -not -path './deploy/*' -not -path './.git/*' -not -name '.gitignore' -not -name '.env*' \
 	-exec cp --parents {} "$TMP/$PLUGIN_ID/" \;)
 tar -czf "$TMP/jeefather.tgz" -C "$TMP" "$PLUGIN_ID"
 

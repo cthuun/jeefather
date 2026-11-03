@@ -9,6 +9,12 @@ Deux scripts équivalents selon ta machine de départ :
 
 ## Prérequis
 
+- **Hôte de la box** : renseigne `JEEDOM_HOST=<IP_BOX>` dans un fichier `.env` à la racine
+  du projet (ce fichier est couvert par `.gitignore` — **ne jamais le commiter**). Les
+  scripts chargent ce `.env` automatiquement ; `JEEDOM_USER`, `DOCKER_CONTAINER`, `SSH_KEY`
+  peuvent aussi s'y trouver. Sans `.env`, passe `-JeedomHost <IP_BOX>` / `JEEDOM_HOST=...`
+  en ligne de commande.
+
 - **Accès SSH à la box** : client OpenSSH installé sur Windows
   (*Paramètres → Applications → Fonctionnalités facultatives → Client OpenSSH*),
   et une clé SSH (ou mot de passe) vers la box.
@@ -31,7 +37,7 @@ cd <CHEMIN_DU_PROJET>
 ## Usage (WSL/Linux/macOS)
 
 ```bash
-cd gf_jee
+cd jeefather
 JEEDOM_HOST=<IP_BOX> JEEDOM_USER=root ./deploy/deploy.sh
 # Docker :
 JEEDOM_HOST=<IP_BOX> DOCKER_CONTAINER=jeedom ./deploy/deploy.sh

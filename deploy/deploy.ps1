@@ -26,7 +26,7 @@
 #>
 [CmdletBinding()]
 param(
-	[Parameter(Mandatory = $true)][string]$JeedomHost,
+	[string]$JeedomHost = '',
 	[string]$JeedomUser = 'root',
 	[string]$PluginPath = '/var/www/html/plugins',
 	[string]$DockerContainer = '',
@@ -34,9 +34,17 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$ROOT = (Resolve-Path "$PSScriptRoot\..").Path   # racine du plugin (gf_jee)
+$ROOT = (Resolve-Path "$PSScriptRoot\..").Path   # racine du plugin (jeefather)
+# charge .env local (gitignore, jamais commite) si present : JEEDOM_HOST, etc.
+if (Test-Path "$ROOT\.env") {
+	Get-Content "$ROOT\.env" | ForEach-Object {
+		if ($_ -match '^\s*([^#/=]+?)\s*=\s*(.*?)\s*$') { [Environment]::SetEnvironmentVariable($Matches[1], $Matches[2], 'Process') }
+	}
+}
 $PLUGIN_ID = 'jeefather'
-$STAGE = Join-Path ([System.IO.Path]::GetTempPath()) "gf_deploy_$PID"
+if (-not $JeedomHost) { $JeedomHost = $env:JEEDOM_HOST }
+if (-not $JeedomHost) { throw 'JeedomHost non renseigne : passe -JeedomHost ou renseigne JEEDOM_HOST dans .env' }
+$STAGE = Join-Path ([System.IO.Path]::GetTempPath()) "jeefather_deploy_$PID"
 $ZIP = Join-Path ([System.IO.Path]::GetTempPath()) "jeefather.zip"
 
 function Invoke-JeedomSsh([string]$remoteCmd) {
@@ -68,7 +76,7 @@ try {
 	Write-Host "==> Preparation du paquet dans $STAGE"
 	New-Item -ItemType Directory -Force -Path "$STAGE\$PLUGIN_ID" | Out-Null
 	Get-ChildItem -Path $ROOT -Recurse -File |
-		Where-Object { $_.FullName -notmatch '\\(tests|deploy|\.git)\\' -and $_.Name -ne '.gitignore' } |
+		Where-Object { $_.FullName -notmatch '\\(tests|deploy|\.git)\\' -and $_.Name -ne '.gitignore' -and $_.Name -notlike '.env*' } |
 		ForEach-Object {
 			$dest = Join-Path "$STAGE\$PLUGIN_ID" $_.FullName.Substring($ROOT.Length)
 			New-Item -ItemType Directory -Force -Path (Split-Path $dest) | Out-Null

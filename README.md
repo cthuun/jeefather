@@ -36,8 +36,16 @@ docs/fr_FR/index.md                   documentation utilisateur
 
 ## Installation
 
-Copier le dossier `gf_jee` dans `plugins/` de Jeedom (ou l'installer depuis le Market),
+- Depuis le **Market Jeedom** (recommandé), ou
+- manuellement : `git clone https://github.com/cthuun/jeefather.git`, puis copier le dossier
+  `jeefather/` dans `plugins/` de Jeedom,
+
 puis configurer email/mot de passe du compte Grainfather dans la configuration du plugin.
+
+## Licence
+
+Distribué sous **GNU AGPL v3.0** (voir `LICENSE`). L'API cloud Grainfather n'étant pas
+officiellement documentée, toute contribution est la bienvenue (issues/PR sur GitHub).
 
 ## Avertissement
 
