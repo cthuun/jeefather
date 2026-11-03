@@ -10,6 +10,7 @@
 		"Tester le login": "Tester le login",
 		"Echec": "Échec",
 		"Nom de l'équipement": "Nom de l'équipement",
+		"Nom synchronisé depuis le cloud Grainfather (lecture seule)": "Nom synchronisé depuis le cloud Grainfather (lecture seule)",
 		"Type": "Type",
 		"Device de fermentation (température / gravité)": "Device de fermentation (température / gravité)",
 		"Brew session (statut, étapes)": "Brew session (statut, étapes)",
@@ -42,6 +43,6 @@
 		"Date conditionnement": "Date conditionnement",
 		"Image recette": "Image recette",
 		"Rafraîchir": "Rafraîchir",
-		"Changer le statut": "Changer le statut"
+		"Température actuelle": "Température actuelle"
 	}
 }

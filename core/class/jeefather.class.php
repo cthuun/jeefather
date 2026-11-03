@@ -205,25 +205,6 @@ class jeefather extends eqLogic
 		return $sessions;
 	}
 
-	/** Met a jour le statut d'une brew session. Envoie le code numerique attendu par l'API. */
-	public static function setSessionStatus(int $sessionId, string $status): array
-	{
-		$code = jeefatherParser::statusToCode($status);
-		return self::apiCall('/2/brew-sessions/' . $sessionId, 'PUT', ['status' => $code !== null ? $code : $status]);
-	}
-
-	/** Definit les etapes de fermentation d'une session. */
-	public static function setFermentationSteps(int $sessionId, array $steps): array
-	{
-		return self::apiCall('/2/brew-sessions/' . $sessionId . '/fermentation-steps', 'PUT', ['fermentation_steps' => $steps]);
-	}
-
-	/** Definit la duree d'une etape de fermentation. */
-	public static function setStepDuration(int $sessionId, int $stepId, int $duration): array
-	{
-		return self::apiCall('/2/brew-sessions/' . $sessionId . '/fermentation-steps/' . $stepId, 'PUT', ['duration' => $duration]);
-	}
-
 	/* ---------------------------------------------------------------------
 	 * Cron declare dans plugin_info/info.json (schedule toutes les 5 min) :
 	 * visible et lancable manuellement dans Analyse > Moteur de taches
@@ -325,6 +306,9 @@ class jeefather extends eqLogic
 					$this->checkAndUpdateCmd($cmdId, $s[$field]);
 				}
 			}
+			// temperature actuelle = device lie a la session (brew_session_id / fermentation_devices)
+			$temp = jeefatherParser::sessionCurrentTemperature($s, jeefather::getDevices());
+			if ($temp !== null) $this->checkAndUpdateCmd('temperature', $temp);
 			$this->checkAndUpdateCmd('online', 1);
 			$this->refreshWidget();
 			return;
@@ -336,6 +320,36 @@ class jeefather extends eqLogic
 	/* ---------------------------------------------------------------------
 	 * Cycle de vie eqLogic : creation des commandes selon le type
 	 * ------------------------------------------------------------------- */
+
+	/* Consultation seule : le nom de l'equipement est re-synchronise depuis le cloud
+	 * a chaque sauvegarde (le champ est aussi en lecture seule dans l'UI). */
+	public function preSave(): void
+	{
+		$name = $this->cloudName();
+		if ($name !== null && $name !== '') {
+			$this->setName($name);
+		}
+	}
+
+	/** Nom cloud de l'equipement (device ou session), avec l'id entre parentheses. */
+	private function cloudName(): ?string
+	{
+		$type = $this->getConfiguration('type', 'device');
+		if ($type === 'device') {
+			$deviceId = $this->getConfiguration('deviceId');
+			if (!$deviceId) return null;
+			foreach (jeefather::getDevices() as $d) {
+				if ((string) $d['id'] === (string) $deviceId) return $d['name'] . ' (#' . $d['id'] . ')';
+			}
+		} else {
+			$sessionId = $this->getConfiguration('sessionId');
+			if (!$sessionId) return null;
+			foreach (jeefather::getBrewSessions() as $s) {
+				if ((string) $s['id'] === (string) $sessionId) return $s['name'] . ' (#' . $s['id'] . ')';
+			}
+		}
+		return null;
+	}
 
 	public function postSave(): void
 	{
@@ -349,7 +363,7 @@ class jeefather extends eqLogic
 		// supprime les commandes orphelines si le type a change (device <-> session)
 		$keep = $type === 'device'
 			? ['temperature', 'gravity', 'battery', 'online', 'lastUpdate', 'linkedSession', 'firmware']
-			: ['status', 'sessionName', 'style', 'originalGravity', 'targetGravity', 'fermentationStep', 'stepCount', 'fermentationStartDate', 'fermentationEndDate', 'conditionDate', 'recipeImage', 'online', 'refresh', 'setStatus'];
+			: ['temperature', 'status', 'sessionName', 'style', 'originalGravity', 'targetGravity', 'fermentationStep', 'stepCount', 'fermentationStartDate', 'fermentationEndDate', 'conditionDate', 'recipeImage', 'online', 'refresh'];
 		foreach ($this->getCmd() as $cmd) {
 			if (!in_array($cmd->getLogicalId(), $keep, true)) {
 				$cmd->remove();
@@ -365,6 +379,7 @@ class jeefather extends eqLogic
 			$this->addCmd('linkedSession', 'Session liée (id)', 'string');
 			$this->addCmd('firmware', 'Firmware', 'string');
 		} else {
+			$this->addCmd('temperature', 'Température actuelle', 'numeric', '°C', ['minValue' => -5, 'maxValue' => 60, 'historized' => true]);
 			$this->addCmd('status', 'Statut', 'string');
 			$this->addCmd('sessionName', 'Nom du brassin', 'string');
 			$this->addCmd('style', 'Style', 'string');
@@ -379,11 +394,6 @@ class jeefather extends eqLogic
 			$this->addCmd('online', 'En ligne', 'binary');
 
 			$this->addCmd('refresh', 'Rafraîchir', 'action', '', ['subtype' => 'other']);
-			$status = $this->addCmd('setStatus', 'Changer le statut', 'message', '', []);
-			if (is_object($status)) {
-				$status->setConfiguration('listValue', 'planning|planning;brewing|brewing;fermenting|fermenting;conditioning|conditioning;serving|serving;completed|completed');
-				$status->save();
-			}
 		}
 	}
 
@@ -433,15 +443,6 @@ class jeefatherCmd extends cmd
 		switch ($logicalId) {
 			case 'refresh':
 				$eq->pull();
-				break;
-
-			case 'setStatus':
-				$sessionId = (int) $eq->getConfiguration('sessionId');
-				$status = $_options['message'] ?? $_options['slider'] ?? '';
-				if ($sessionId && $status !== '') {
-					jeefather::setSessionStatus($sessionId, $status);
-					$eq->pull();
-				}
 				break;
 		}
 	}

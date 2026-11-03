@@ -86,13 +86,6 @@ class jeefatherParser
 		return (string) $status;
 	}
 
-	/** texte statut -> code numerique (pour les ecritures). */
-	public static function statusToCode(string $text): ?int
-	{
-		$inv = array_flip(self::STATUS_MAP);
-		return isset($inv[$text]) ? $inv[$text] : null;
-	}
-
 	/**
 	 * Normalise un device brut. Structure reelle:
 	 * {id, name, last_temperature:"20.5", last_sg:"1.0100", last_heard, data_updated_at,
@@ -141,6 +134,45 @@ class jeefatherParser
 		return gmdate('Y-m-d H:i:s', $ts + (int) round($totalMin * 60));
 	}
 
+	/** Liste normalisee (strings) des ids devices associes a la session (fermentation_devices). */
+	public static function sessionDeviceIds(array $s): array
+	{
+		$raw = $s['fermentation_devices'] ?? $s['devices'] ?? [];
+		if (!is_array($raw)) return [];
+		$out = [];
+		foreach ($raw as $entry) {
+			if (is_array($entry)) {
+				$id = self::firstKey($entry, ['id', 'device_id']);
+				if ($id !== null) $out[] = (string) $id;
+			} elseif ($entry !== null && $entry !== '') {
+				$out[] = (string) $entry;
+			}
+		}
+		return $out;
+	}
+
+	/**
+	 * Temperature actuelle d'une brew session : celle du device lie a la session
+	 * (brew_session_id == id de session), sinon du premier device de fermentation_devices.
+	 * $devices = liste normalisee via extractDevice().
+	 */
+	public static function sessionCurrentTemperature(array $s, array $devices): ?float
+	{
+		$sessionId = isset($s['id']) && $s['id'] !== null ? (string) $s['id'] : null;
+		$deviceIds = self::sessionDeviceIds($s);
+		foreach ($devices as $d) {
+			if ($sessionId !== null && (string) ($d['sessionId'] ?? '') === $sessionId && $d['temperature'] !== null) {
+				return $d['temperature'];
+			}
+		}
+		foreach ($devices as $d) {
+			if (in_array((string) ($d['id'] ?? ''), $deviceIds, true) && $d['temperature'] !== null) {
+				return $d['temperature'];
+			}
+		}
+		return null;
+	}
+
 	/**
 	 * Normalise une brew session brute. Champs reels: id, status (code), session_name,
 	 * name, batch_number, original_gravity, final_gravity, fermentation_start_date,
@@ -177,6 +209,7 @@ class jeefatherParser
 			'conditionDate' => self::firstKey($s, ['condition_date', 'conditionDate']),
 			'recipeImage' => self::firstKey($recipe, ['image', 'image_url', 'imageUrl']),
 			'isActive' => (bool) ($s['is_active'] ?? false),
+			'devices' => self::sessionDeviceIds($s),
 		];
 	}
 }

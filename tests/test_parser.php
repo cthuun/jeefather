@@ -53,6 +53,10 @@ check('session 5001 OG', 1.04, $sessions[0]['originalGravity']);
 check('session 5001 FG', 1.01, $sessions[0]['targetGravity']);
 check('session 5001 stepCount', 1, $sessions[0]['stepCount']);
 check('session 5001 image recette', 'https://community.grainfather.com/recipes/9001/image.jpg', $sessions[0]['recipeImage']);
+check('session 5001 devices lies (fermentation_devices)', ['1001', '1002'], $sessions[0]['devices']);
+check('session 5001 temperature actuelle (device 1002 lie via brew_session_id)', 20.5, jeefatherParser::sessionCurrentTemperature($sessions[0], $devices));
+check('session 5002 sans device lie -> null', null, jeefatherParser::sessionCurrentTemperature($sessions[1], $devices));
+check('session sans id, device via fermentation_devices', 20.5, jeefatherParser::sessionCurrentTemperature(['fermentation_devices' => [1002]], $devices));
 // start 2026-08-09T12:15:28Z + 10080 min (time_unit_id 30 = minutes) = +7 jours
 check('session 5001 endDate estimee', '2026-08-16 12:15:28', $sessions[0]['fermentationEndDate']);
 check('session 5002 statut 40 -> completed', 'completed', $sessions[1]['status']);
@@ -69,9 +73,6 @@ check('status 35 -> serving', 'serving', jeefatherParser::statusToText(35));
 check('status inconnu 99 -> status_99', 'status_99', jeefatherParser::statusToText(99));
 check('status texte', 'fermenting', jeefatherParser::statusToText('fermenting'));
 check('status null', null, jeefatherParser::statusToText(null));
-check('code planning -> 5', 5, jeefatherParser::statusToCode('planning'));
-check('code completed -> 40', 40, jeefatherParser::statusToCode('completed'));
-check('code inconnu -> null', null, jeefatherParser::statusToCode('xxx'));
 
 echo $failures === 0 ? "\nTOUS LES TESTS PASSENT\n" : "\n$failures ECHEC(S)\n";
 exit($failures === 0 ? 0 : 1);

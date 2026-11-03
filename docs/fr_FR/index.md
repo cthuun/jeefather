@@ -28,14 +28,18 @@ interroge cette API REST en polling (toutes les N minutes) avec un token Bearer 
 
 Deux types d'équipements :
 
+> Le plugin est en **consultation seule** : le nom de chaque équipement est synchronisé
+> depuis le cloud Grainfather (champ en lecture seule) et aucune action ne modifie le cloud
+> (pas de changement de statut). Seule l'action **Rafraîchir** est disponible.
+
 - **Device de fermentation** : choisissez le device dans la liste remontée par le cloud.
   Commandes : `Température` (°C, historisée), `Gravité (SG)` (historisée), `Batterie` (%),
   `En ligne`, `Dernière mesure`.
-- **Brew session** : choisissez la session dans la liste. Commandes : `Statut`
+- **Brew session** : choisissez la session dans la liste. Commandes : `Température actuelle`
+  (°C, historisée — relevée sur le device lié à la session), `Statut`
   (planning/brewing/fermenting/conditioning/serving/completed), `Nom du brassin`, `Style`,
   `Gravité cible`, `Étape de fermentation`, `Durée étape`, `Début fermentation`,
-  `Date conditionnement`, `Image recette`, plus l'action **Changer le statut** et
-  **Rafraîchir**.
+  `Date conditionnement`, `Image recette`, plus l'action **Rafraîchir**.
 
 ## Scénarios d'usage
 

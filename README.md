@@ -3,8 +3,8 @@
 Plugin Jeedom qui récupère et affiche les données de **fermentation** du cloud Grainfather :
 
 - **Devices** (Conical Fermenter Pro + contrôleur WiFi, capteurs Pill) : température, gravité (SG), batterie.
-- **Brew sessions** : statut, étapes de fermentation, gravité cible, dates, image de recette.
-- **Actions** : rafraîchir, changer le statut d'une session.
+- **Brew sessions** : température actuelle (device lié), statut, étapes de fermentation, gravité cible, dates, image de recette.
+- **Action** : rafraîchir. Consultation seule : le nom des équipements est synchronisé depuis le cloud (lecture seule) et aucun changement de statut n'est envoyé.
 
 ## Architecture
 
@@ -14,9 +14,9 @@ Polling de l'API REST cloud `https://community.grainfather.com/api` (non officie
 POST /auth/login                    → api_token (Bearer, re-login auto sur 401)
 GET  /equipment/fermentation-devices → devices + dernières mesures
 GET  /2/brew-sessions               → sessions (paginé via next_page_url)
-PUT  /2/brew-sessions/{id}          → changement de statut
-PUT  /2/brew-sessions/{id}/fermentation-steps → étapes de fermentation
 ```
+
+Lecture seule : aucun appel PUT/POST autre que `/auth/login` n'est effectué.
 
 Un `cron()` Jeedom (toutes les minutes, intervalle réglable) appelle `pull()` sur chaque
 équipement actif, qui lit le cloud et met à jour ses commandes via `checkAndUpdateCmd()`.
