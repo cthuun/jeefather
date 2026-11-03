@@ -66,6 +66,16 @@ check('next_page_url null -> null', null, jeefatherParser::nextPagePath($page2['
 $s2 = jeefatherParser::extractSession(jeefatherParser::extractSessions($page2)[0]);
 check('session page2 statut 30 -> conditioning', 'conditioning', $s2['status']);
 
+// --- numeros de brassin : 1..N par date de creation (created_at), repli sur id ---
+check('session 5001 createdAt', '2026-08-01T10:00:00.000000Z', $sessions[0]['createdAt']);
+$all = array_merge($sessions, [$s2]);
+$numbered = jeefatherParser::assignBrewNumbers($all);
+$byId = [];
+foreach ($numbered as $s) { $byId[$s['id']] = $s['brewNumber']; }
+check('brassin le plus ancien (5002, 2026-02-01) -> #1', 1, $byId['5002']);
+check('session 5001 (2026-08-01) -> #2', 2, $byId['5001']);
+check('session 5003 (2026-09-01) -> #3', 3, $byId['5003']);
+
 // --- statuts ---
 check('status 5 -> planning', 'planning', jeefatherParser::statusToText(5));
 check('status 10 -> brewing', 'brewing', jeefatherParser::statusToText(10));

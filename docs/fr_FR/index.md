@@ -44,10 +44,16 @@ Deux types d'équipements :
 ## Panel « Brassins »
 
 Le plugin fournit un **panel** qui liste **toutes les brew sessions du cloud Grainfather**
-(même celles sans équipement configuré) sous forme de tableau : brassin, statut (libellé),
+(même celles sans équipement configuré) sous forme de tableau. La première colonne « # » est le
+**numéro de brassin** : il démarre à 1 et s'incrémente par date de création de la fiche cloud
+(`created_at`, repli sur l'id). Colonnes : brassin, statut (libellé),
 température actuelle (device lié), OG, FG cible, nombre d'étapes, début de fermentation, fin
 estimée, date de conditionnement. Les sessions actives (brassage/fermentation) sont affichées
 en premier. Sur desktop, chaque ligne renvoie vers la fiche de l'équipement lorsqu'il existe.
+
+Le tableau est **filtrable** (recherche texte sur le nom du brassin + filtre par statut, avec
+compteur « n / total ») et **triable** : clic sur un en-tête de colonne pour trier croissant /
+décroissant (valeurs numériques triées numériquement, dates au format ISO, vides en dernier).
 
 - **Desktop** : menu latéral *Plugins → Jeefather*, ou directement
   `index.php?v=d&m=jeefather&p=panel` (le panel est `desktop/php/panel.php`, déclaré via

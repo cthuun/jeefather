@@ -174,6 +174,28 @@ class jeefatherParser
 	}
 
 	/**
+	 * Attribue un numero de brassin (1..N) a chaque session, en triant par date de
+	 * creation de la fiche cloud (created_at), repli sur l'id (ids incrementaux).
+	 * Retourne les sessions re-triees avec le champ 'brewNumber' renseigne.
+	 */
+	public static function assignBrewNumbers(array $sessions): array
+	{
+		usort($sessions, function ($a, $b) {
+			$ca = $a['createdAt'] ?? null;
+			$cb = $b['createdAt'] ?? null;
+			if ($ca && $cb && (string) $ca !== (string) $cb) {
+				return strcmp((string) $ca, (string) $cb);
+			}
+			return (int) $a['id'] <=> (int) $b['id'];
+		});
+		foreach ($sessions as $i => &$s) {
+			$s['brewNumber'] = $i + 1;
+		}
+		unset($s);
+		return $sessions;
+	}
+
+	/**
 	 * Normalise une brew session brute. Champs reels: id, status (code), session_name,
 	 * name, batch_number, original_gravity, final_gravity, fermentation_start_date,
 	 * condition_date, fermentation_steps[], fermentation_devices[], recipe{...}, is_active.
@@ -197,6 +219,7 @@ class jeefatherParser
 
 		return [
 			'id' => $id !== null ? (string) $id : null,
+			'createdAt' => self::firstKey($s, ['created_at', 'createdAt', 'created']),
 			'name' => (string) $name,
 			'style' => $style !== null ? (string) $style : '',
 			'status' => self::statusToText(self::firstKey($s, ['status', 'state'])),

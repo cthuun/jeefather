@@ -1,5 +1,6 @@
 <?php
-/* Panel mobile Jeefather (webapp Jeedom) : tableau de TOUTES les brew sessions du cloud.
+/* Panel mobile Jeefather (webapp Jeedom) : tableau de TOUTES les brew sessions du cloud,
+ * avec filtres (texte + statut) et tri par colonne (script inline ci-dessous).
  * Declare dans plugin_info/info.json via "mobile": "panel".
  * Sur Jeedom 4.x, la webapp mobile charge les panels via
  * index.php?v=m&ajax=1&p=panel&m=jeefather -> plugins/jeefather/mobile/html/panel.html
@@ -39,10 +40,11 @@ foreach (eqLogic::byType('jeefather') as $eqLogic) {
 /* lignes depuis le cloud Grainfather */
 $rows = [];
 $devices = jeefather::getDevices();
-foreach (jeefather::getBrewSessions() as $s) {
+foreach (jeefatherParser::assignBrewNumbers(jeefather::getBrewSessions()) as $s) {
 	$sid = (string) $s['id'];
 	$rows[] = [
 		'id' => $s['id'],
+		'brewNumber' => $s['brewNumber'] ?? null,
 		'name' => ($s['name'] !== '' ? $s['name'] : 'Batch') . ' (#' . $s['id'] . ')',
 		'eqId' => $eqBySession[$sid] ?? null,
 		'status' => $s['status'],
@@ -63,6 +65,7 @@ if (count($rows) === 0) {
 		$sid = (string) $eqLogic->getConfiguration('sessionId');
 		$rows[] = [
 			'id' => $sid,
+			'brewNumber' => null,
 			'name' => $eqLogic->getName(),
 			'eqId' => $eqLogic->getId(),
 			'status' => $val('status'),
@@ -86,9 +89,20 @@ usort($rows, function ($a, $b) use ($activeStatus) {
 		<?php if (count($rows) === 0): ?>
 			<div class="alert alert-info">{{Aucune brew session dans le cloud Grainfather}}</div>
 		<?php else: ?>
+		<div class="jeefather-filters form-inline">
+			<input type="text" id="jf-filter-q" class="form-control input-sm" placeholder="{{Rechercher...}}">
+			<select id="jf-filter-status" class="form-control input-sm">
+				<option value="">{{Tous}}</option>
+				<?php foreach ($statusMap as $key => $pair): ?>
+					<option value="<?php echo $key; ?>"><?php echo $h($pair[0]); ?></option>
+				<?php endforeach; ?>
+			</select>
+			<span class="text-muted" id="jf-count"></span>
+		</div>
 		<table class="table table-condensed table-striped jeefather-sessions">
 			<thead>
 				<tr>
+					<th>#</th>
 					<th>{{Brassin}}</th>
 					<th>{{Statut}}</th>
 					<th>{{Temp.}}</th>
@@ -99,13 +113,15 @@ usort($rows, function ($a, $b) use ($activeStatus) {
 			<tbody>
 			<?php foreach ($rows as $r):
 				[$label, $class] = $statusLabel($r['status']);
+				$dv = function ($v) { return $v === null ? '' : (string) $v; };
 			?>
-				<tr data-eqLogic_id="<?php echo $r['eqId'] ?: ''; ?>">
-					<td><?php echo $h($r['name']); ?></td>
-					<td><span class="label <?php echo $class; ?>"><?php echo $h($label); ?></span></td>
-					<td><?php echo $r['temperature'] !== null && $r['temperature'] !== '' ? number_format((float) $r['temperature'], 1) . ' °C' : '—'; ?></td>
-					<td><?php echo $r['fg'] !== null && $r['fg'] !== '' ? $h($r['fg']) : '—'; ?></td>
-					<td><?php echo $h($fmtDate($r['end'])); ?></td>
+				<tr data-status="<?php echo $h($r['status']); ?>" data-eqLogic_id="<?php echo $r['eqId'] ?: ''; ?>">
+					<td data-v="<?php echo $dv($r['brewNumber']); ?>"><?php echo $r['brewNumber'] !== null ? '#' . (int) $r['brewNumber'] : '—'; ?></td>
+					<td data-v="<?php echo $h($r['name']); ?>"><?php echo $h($r['name']); ?></td>
+					<td data-v="<?php echo $h($r['status']); ?>"><span class="label <?php echo $class; ?>"><?php echo $h($label); ?></span></td>
+					<td data-v="<?php echo $dv($r['temperature']); ?>"><?php echo $r['temperature'] !== null && $r['temperature'] !== '' ? number_format((float) $r['temperature'], 1) . ' °C' : '—'; ?></td>
+					<td data-v="<?php echo $dv($r['fg']); ?>"><?php echo $r['fg'] !== null && $r['fg'] !== '' ? $h($r['fg']) : '—'; ?></td>
+					<td data-v="<?php echo $dv($r['end']); ?>"><?php echo $h($fmtDate($r['end'])); ?></td>
 				</tr>
 			<?php endforeach; ?>
 			</tbody>
@@ -113,3 +129,55 @@ usort($rows, function ($a, $b) use ($activeStatus) {
 		<?php endif; ?>
 	</div>
 </div>
+<script>
+/* Filtres (texte + statut) et tri par colonne pour le panel mobile. */
+(function () {
+	var $table = $('.jeefather-sessions');
+	if (!$table.length) return;
+	var $tbody = $table.find('tbody');
+	var $ths = $table.find('thead th');
+	var total = $tbody.find('tr').length;
+
+	function applyFilters() {
+		var q = $('#jf-filter-q').val().toLowerCase();
+		var st = $('#jf-filter-status').val();
+		var visible = 0;
+		$tbody.find('tr').each(function () {
+			var $tr = $(this);
+			var ok = (!q || $tr.find('td:first').text().toLowerCase().indexOf(q) !== -1)
+				&& (!st || $tr.attr('data-status') === st);
+			$tr.toggle(ok);
+			if (ok) visible++;
+		});
+		$('#jf-count').text(visible + ' / ' + total);
+	}
+
+	$('#jf-filter-q').on('input', applyFilters);
+	$('#jf-filter-status').on('change', applyFilters);
+
+	var sortCol = -1, sortAsc = true;
+	$ths.on('click', function () {
+		var col = $ths.index($(this));
+		if (sortCol === col) { sortAsc = !sortAsc; } else { sortCol = col; sortAsc = true; }
+		var rows = $tbody.find('tr').get();
+		rows.sort(function (a, b) {
+			var va = $(a).find('td').eq(col).attr('data-v') || '';
+			var vb = $(b).find('td').eq(col).attr('data-v') || '';
+			var na = parseFloat(va), nb = parseFloat(vb);
+			var cmp;
+			if (va !== '' && vb !== '' && !isNaN(na) && !isNaN(nb)) {
+				cmp = na - nb;
+			} else if (va === '') { cmp = 1; } else if (vb === '') { cmp = -1; } else {
+				cmp = va.localeCompare(vb);
+			}
+			return sortAsc ? cmp : -cmp;
+		});
+		$.each(rows, function (i, tr) { $tbody.append(tr); });
+		$ths.removeClass('sort-asc sort-desc');
+		$(this).addClass(sortAsc ? 'sort-asc' : 'sort-desc');
+		applyFilters();
+	});
+
+	applyFilters();
+})();
+</script>

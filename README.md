@@ -28,7 +28,7 @@ plugin_info/info.json                 métadonnées du plugin
 core/class/jeefather.class.php       eqLogic + classe cmd (jeefatherCmd, meme fichier, convention Jeedom) + client API + cron/pull
 core/ajax/jeefather.ajax.php        endpoints AJAX (getDevices, getSessions, testLogin)
 desktop/php/jeefather.php + js       configuration compte + équipements
-desktop/php/panel.php                 panel « Brassins » : tableau de toutes les brew sessions
+desktop/php/panel.php + js/panel.js   panel « Brassins » : tableau de toutes les brew sessions (filtres + tri)
 desktop/js/jeefather.js
 mobile/html/panel.html                même tableau dans l'app mobile (webapp)
 core/template/dashboard/…             widget numeric (température/gravité)

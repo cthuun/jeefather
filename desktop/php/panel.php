@@ -1,5 +1,6 @@
 <?php
-/* Panel desktop Jeefather : tableau de TOUTES les brew sessions du cloud Grainfather.
+/* Panel desktop Jeefather : tableau de TOUTES les brew sessions du cloud Grainfather,
+ * avec filtres (texte + statut) et tri par colonne (desktop/js/panel.js).
  * Declare dans plugin_info/info.json via "display": "panel".
  * Source : API cloud directement (pas seulement les equipements configures) ;
  * si l'API est KO, repli sur les equipements session configures (valeurs via execCmd = cache). */
@@ -38,10 +39,11 @@ foreach (eqLogic::byType('jeefather') as $eqLogic) {
 /* lignes depuis le cloud */
 $rows = [];
 $devices = jeefather::getDevices();
-foreach (jeefather::getBrewSessions() as $s) {
+foreach (jeefatherParser::assignBrewNumbers(jeefather::getBrewSessions()) as $s) {
 	$sid = (string) $s['id'];
 	$rows[] = [
 		'id' => $s['id'],
+		'brewNumber' => $s['brewNumber'] ?? null,
 		'name' => ($s['name'] !== '' ? $s['name'] : 'Batch') . ' (#' . $s['id'] . ')',
 		'eq' => $eqBySession[$sid] ?? null,
 		'status' => $s['status'],
@@ -64,6 +66,7 @@ if (count($rows) === 0) {
 		};
 		$rows[] = [
 			'id' => $sid,
+			'brewNumber' => null,
 			'name' => $eq->getName(),
 			'eq' => $eq,
 			'status' => $val('status'),
@@ -78,7 +81,7 @@ if (count($rows) === 0) {
 	}
 }
 
-/* tri : sessions actives d'abord, puis id decroissant */
+/* tri par defaut : sessions actives d'abord, puis id decroissant */
 usort($rows, function ($a, $b) use ($activeStatus) {
 	$aa = in_array((string) $a['status'], $activeStatus, true) ? 1 : 0;
 	$bb = in_array((string) $b['status'], $activeStatus, true) ? 1 : 0;
@@ -92,9 +95,21 @@ usort($rows, function ($a, $b) use ($activeStatus) {
 		<?php if (count($rows) === 0): ?>
 			<div class="alert alert-info" style="margin:10px;">{{Aucune brew session dans le cloud Grainfather (vérifier le login dans la configuration du plugin).}}</div>
 		<?php else: ?>
+		<div class="jeefather-filters form-inline">
+			<input type="text" id="jf-filter-q" class="form-control input-sm" placeholder="{{Rechercher un brassin...}}">
+			<select id="jf-filter-status" class="form-control input-sm">
+				<option value="">{{Tous les statuts}}</option>
+				<?php foreach ($statusMap as $key => $pair): ?>
+					<option value="<?php echo $key; ?>"><?php echo $h($pair[0]); ?></option>
+				<?php endforeach; ?>
+			</select>
+			<span class="text-muted" id="jf-count"></span>
+			<span class="text-muted pull-right" style="font-size:0.85em;">{{Clic sur un en-tête pour trier}}</span>
+		</div>
 		<table class="table table-condensed table-striped jeefather-sessions">
 			<thead>
 				<tr>
+					<th>#</th>
 					<th>{{Brassin}}</th>
 					<th>{{Statut}}</th>
 					<th>{{Temp. actuelle}}</th>
@@ -109,23 +124,25 @@ usort($rows, function ($a, $b) use ($activeStatus) {
 			<tbody>
 			<?php foreach ($rows as $r):
 				[$label, $class] = $statusLabel($r['status']);
+				$dv = function ($v) { return $v === null ? '' : (string) $v; };
 			?>
-				<tr>
-					<td>
+				<tr data-status="<?php echo $h($r['status']); ?>">
+					<td data-v="<?php echo $dv($r['brewNumber']); ?>"><?php echo $r['brewNumber'] !== null ? '#' . (int) $r['brewNumber'] : '—'; ?></td>
+					<td data-v="<?php echo $h($r['name']); ?>">
 						<?php if (is_object($r['eq'])): ?>
 							<a href="index.php?v=d&m=jeefather&p=jeefather&id=<?php echo $r['eq']->getId(); ?>"><?php echo $h($r['name']); ?></a>
 						<?php else: ?>
 							<?php echo $h($r['name']); ?> <span class="text-muted">(<?php echo '{{équipement non configuré}}'; ?>)</span>
 						<?php endif; ?>
 					</td>
-					<td><span class="label <?php echo $class; ?>"><?php echo $h($label); ?></span></td>
-					<td><?php echo $r['temperature'] !== null && $r['temperature'] !== '' ? number_format((float) $r['temperature'], 1) . ' °C' : '—'; ?></td>
-					<td><?php echo $r['og'] !== null && $r['og'] !== '' ? $h($r['og']) : '—'; ?></td>
-					<td><?php echo $r['fg'] !== null && $r['fg'] !== '' ? $h($r['fg']) : '—'; ?></td>
-					<td><?php echo $r['stepCount'] !== null && $r['stepCount'] !== '' ? (int) $r['stepCount'] : '—'; ?></td>
-					<td><?php echo $h($fmtDate($r['start'])); ?></td>
-					<td><?php echo $h($fmtDate($r['end'])); ?></td>
-					<td><?php echo $h($fmtDate($r['condition'])); ?></td>
+					<td data-v="<?php echo $h($r['status']); ?>"><span class="label <?php echo $class; ?>"><?php echo $h($label); ?></span></td>
+					<td data-v="<?php echo $dv($r['temperature']); ?>"><?php echo $r['temperature'] !== null && $r['temperature'] !== '' ? number_format((float) $r['temperature'], 1) . ' °C' : '—'; ?></td>
+					<td data-v="<?php echo $dv($r['og']); ?>"><?php echo $r['og'] !== null && $r['og'] !== '' ? $h($r['og']) : '—'; ?></td>
+					<td data-v="<?php echo $dv($r['fg']); ?>"><?php echo $r['fg'] !== null && $r['fg'] !== '' ? $h($r['fg']) : '—'; ?></td>
+					<td data-v="<?php echo $dv($r['stepCount']); ?>"><?php echo $r['stepCount'] !== null && $r['stepCount'] !== '' ? (int) $r['stepCount'] : '—'; ?></td>
+					<td data-v="<?php echo $dv($r['start']); ?>"><?php echo $h($fmtDate($r['start'])); ?></td>
+					<td data-v="<?php echo $dv($r['end']); ?>"><?php echo $h($fmtDate($r['end'])); ?></td>
+					<td data-v="<?php echo $dv($r['condition']); ?>"><?php echo $h($fmtDate($r['condition'])); ?></td>
 				</tr>
 			<?php endforeach; ?>
 			</tbody>
@@ -133,3 +150,4 @@ usort($rows, function ($a, $b) use ($activeStatus) {
 		<?php endif; ?>
 	</div>
 </div>
+<?php include_file('desktop', 'panel', 'js', 'jeefather'); ?>

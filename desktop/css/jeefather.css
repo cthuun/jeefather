@@ -16,3 +16,23 @@
 .jeefather-sessions td:first-child {
 	white-space: normal;
 }
+
+/* Panel "Brassins" : filtres + tri par colonne */
+.jeefather-filters {
+	padding: 8px 10px;
+	border-bottom: 1px solid #ddd;
+}
+.jeefather-filters .form-control {
+	margin-right: 6px;
+}
+.jeefather-sessions thead th {
+	cursor: pointer;
+	user-select: none;
+	white-space: nowrap;
+}
+.jeefather-sessions thead th.sort-asc::after {
+	content: ' ▲';
+}
+.jeefather-sessions thead th.sort-desc::after {
+	content: ' ▼';
+}
