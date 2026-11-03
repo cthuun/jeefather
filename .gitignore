@@ -1,0 +1,26 @@
+# dépendances / artefacts
+*.zip
+*.tgz
+*.log
+tmp/
+temp/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# éditeur
+.vscode/
+.idea/
+
+# secrets locaux éventuels (ne JAMAIS commiter)
+*.env
+.env.local
+secrets*.json
+*_askpass*
+id_rsa*
+*.pem
+*.key
+
+# ne pas commiter de fixture contenant des vraies données cloud
+# (tests/fixtures/*.json doivent rester anonymisés)

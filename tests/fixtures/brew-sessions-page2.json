@@ -1,0 +1,13 @@
+{
+	"current_page": 2,
+	"data": [
+		{
+			"id": 5003,
+			"status": 30,
+			"session_name": "Batch #3",
+			"final_gravity": 1.012,
+			"fermentation_steps": []
+		}
+	],
+	"next_page_url": null
+}

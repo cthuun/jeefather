@@ -1,0 +1,44 @@
+{
+	"current_page": 1,
+	"data": [
+		{
+			"id": 5001,
+			"status": 20,
+			"name": "Batch",
+			"batch_number": 1,
+			"session_name": "Batch #1",
+			"original_gravity": 1.040,
+			"final_gravity": 1.010,
+			"is_active": true,
+			"fermentation_start_date": "2026-08-09T12:15:28.000000Z",
+			"condition_date": null,
+			"fermentation_devices": [1001, 1002],
+			"fermentation_steps": [
+				{ "id": 9001, "name": "Fermentation Step 1", "temperature": 20, "time": 10080, "order": 0, "time_unit_id": 30, "is_ramp_step": false, "finish_temperature": 18 }
+			],
+			"recipe": {
+				"id": 9001,
+				"name": "Ma recette exemple",
+				"style_id": "21C",
+				"image": "https://community.grainfather.com/recipes/9001/image.jpg",
+				"recipe_style": { "sub_category_id": "21C", "sub_category_name": "IPA exemple" }
+			}
+		},
+		{
+			"id": 5002,
+			"status": 40,
+			"name": "Batch",
+			"batch_number": 2,
+			"session_name": "Batch #2",
+			"original_gravity": null,
+			"final_gravity": null,
+			"is_active": true,
+			"fermentation_start_date": "2026-02-08T14:20:15.000000Z",
+			"condition_date": null,
+			"fermentation_steps": [],
+			"recipe": { "id": 9002, "name": "Ma recette exemple", "style_id": "21C", "recipe_style": { "sub_category_name": "IPA exemple" } }
+		}
+	],
+	"next_page_url": "https://community.grainfather.com/api/2/brew-sessions?page=2",
+	"path": "https://community.grainfather.com/api/2/brew-sessions"
+}

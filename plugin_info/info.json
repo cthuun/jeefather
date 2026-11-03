@@ -1,0 +1,42 @@
+{
+	"id": "jeefather",
+	"name": "Jeefather",
+	"pluginVersion": "0.1.0",
+	"description": {
+		"fr_FR": "Récupère et affiche dans Jeedom les données de fermentation du cloud Grainfather (Conical Fermenter Pro, capteurs Pill, brew sessions) : température, gravité, statut, étapes de fermentation.",
+		"en_US": "Retrieves and displays in Jeedom fermentation data from the Grainfather cloud (Conical Fermenter Pro, Pill sensors, brew sessions): temperature, gravity, status, fermentation steps."
+	},
+	"licence": "AGPL",
+	"author": "gf_jee contributors",
+	"require": "4.2",
+	"category": "heating",
+	"hasDependency": false,
+	"hasOwnDeamon": false,
+	"maxDependancyInstallTime": 0,
+	"cron": {
+		"pullCron": {
+			"name": "Pull cloud Grainfather",
+			"class": "jeefather",
+			"function": "pullCron",
+			"schedule": "*/5 * * * *"
+		}
+	},
+	"documentation": "https://github.com/gf_jee/jeefather/blob/master/docs/fr_FR/index.md",
+	"changelog": "https://github.com/gf_jee/jeefather/blob/master/docs/fr_FR/index.md",
+	"language": [
+		"fr_FR",
+		"en_US"
+	],
+	"compatibility": [
+		"smart",
+		"luna",
+		"atlas",
+		"rpi",
+		"docker",
+		"diy"
+	],
+	"specialAttributes": {
+		"object": {},
+		"user": {}
+	}
+}

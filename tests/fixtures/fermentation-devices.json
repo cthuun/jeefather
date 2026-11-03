@@ -1,0 +1,28 @@
+[
+	{
+		"id": 1001,
+		"name": "Controleur",
+		"device_token": null,
+		"last_heard": null,
+		"unique_device_token": "exemple-token-a",
+		"brew_session_id": 5001,
+		"data_updated_at": null,
+		"firmware_ver": "2.8",
+		"last_sg": null,
+		"last_temperature": null,
+		"is_controller_linked": true
+	},
+	{
+		"id": 1002,
+		"name": "Sonde",
+		"device_token": "EXEMPLETOKEN123",
+		"last_heard": "2026-11-03T11:06:50.000000Z",
+		"unique_device_token": "exemple-token-b",
+		"brew_session_id": 5001,
+		"data_updated_at": "2026-11-03 11:06:50",
+		"firmware_ver": null,
+		"last_sg": "1.0100",
+		"last_temperature": "20.50",
+		"is_controller_linked": null
+	}
+]
