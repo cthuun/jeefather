@@ -44,5 +44,41 @@
 		"Image recette": "Image recette",
 		"Rafraîchir": "Rafraîchir",
 		"Température actuelle": "Température actuelle"
+	},
+	"plugins/jeefather/desktop/php/panel.php": {
+		"401 - Accès non autorisé": "401 - Accès non autorisé",
+		"Brassins (brew sessions Grainfather)": "Brassins (brew sessions Grainfather)",
+		"Aucune brew session dans le cloud Grainfather (vérifier le login dans la configuration du plugin).": "Aucune brew session dans le cloud Grainfather (vérifier le login dans la configuration du plugin).",
+		"équipement non configuré": "équipement non configuré",
+		"Brassin": "Brassin",
+		"Statut": "Statut",
+		"Temp. actuelle": "Temp. actuelle",
+		"OG": "OG",
+		"FG cible": "FG cible",
+		"Étapes": "Étapes",
+		"Début fermentation": "Début fermentation",
+		"Fin estimée": "Fin estimée",
+		"Conditionnement": "Conditionnement",
+		"Planifié": "Planifié",
+		"Brassage": "Brassage",
+		"Fermentation": "Fermentation",
+		"Service": "Service",
+		"Terminé": "Terminé"
+	},
+	"plugins/jeefather/mobile/html/panel.html": {
+		"401 - Accès non autorisé": "401 - Accès non autorisé",
+		"Brassins": "Brassins",
+		"Aucune brew session dans le cloud Grainfather": "Aucune brew session dans le cloud Grainfather",
+		"Brassin": "Brassin",
+		"Statut": "Statut",
+		"Temp.": "Temp.",
+		"FG": "FG",
+		"Fin estimée": "Fin estimée",
+		"Planifié": "Planifié",
+		"Brassage": "Brassage",
+		"Fermentation": "Fermentation",
+		"Conditionnement": "Conditionnement",
+		"Service": "Service",
+		"Terminé": "Terminé"
 	}
 }

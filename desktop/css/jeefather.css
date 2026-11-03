@@ -3,3 +3,16 @@
 	width: 71px;
 	height: 71px;
 }
+
+/* Panel "Brassins" : tableau des brew sessions */
+.jeefather-panel .panel-body {
+	padding: 0;
+}
+.jeefather-sessions th,
+.jeefather-sessions td {
+	vertical-align: middle;
+	white-space: nowrap;
+}
+.jeefather-sessions td:first-child {
+	white-space: normal;
+}

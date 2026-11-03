@@ -41,6 +41,21 @@ Deux types d'équipements :
   `Gravité cible`, `Étape de fermentation`, `Durée étape`, `Début fermentation`,
   `Date conditionnement`, `Image recette`, plus l'action **Rafraîchir**.
 
+## Panel « Brassins »
+
+Le plugin fournit un **panel** qui liste **toutes les brew sessions du cloud Grainfather**
+(même celles sans équipement configuré) sous forme de tableau : brassin, statut (libellé),
+température actuelle (device lié), OG, FG cible, nombre d'étapes, début de fermentation, fin
+estimée, date de conditionnement. Les sessions actives (brassage/fermentation) sont affichées
+en premier. Sur desktop, chaque ligne renvoie vers la fiche de l'équipement lorsqu'il existe.
+
+- **Desktop** : menu latéral *Plugins → Jeefather*, ou directement
+  `index.php?v=d&m=jeefather&p=panel` (le panel est `desktop/php/panel.php`, déclaré via
+  `"display": "panel"` dans `info.json`).
+- **App mobile / webapp mobile** : menu *Plugins → Jeefather* (le panel est
+  `mobile/html/panel.html`, déclaré via `"mobile": "panel"` ; l'app charge
+  `index.php?v=m&ajax=1&p=panel&m=jeefather`).
+
 ## Scénarios d'usage
 
 - Alerte (notification) si la température de fermentation sort d'une plage définie.

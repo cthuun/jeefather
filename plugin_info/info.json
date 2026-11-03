@@ -21,6 +21,8 @@
 			"schedule": "*/5 * * * *"
 		}
 	},
+	"display": "panel",
+	"mobile": "panel",
 	"documentation": "https://github.com/cthuun/jeefather/blob/master/docs/fr_FR/index.md",
 	"changelog": "https://github.com/cthuun/jeefather/blob/master/docs/fr_FR/index.md",
 	"language": [

@@ -1,0 +1,115 @@
+<?php
+/* Panel mobile Jeefather (webapp Jeedom) : tableau de TOUTES les brew sessions du cloud.
+ * Declare dans plugin_info/info.json via "mobile": "panel".
+ * Sur Jeedom 4.x, la webapp mobile charge les panels via
+ * index.php?v=m&ajax=1&p=panel&m=jeefather -> plugins/jeefather/mobile/html/panel.html
+ */
+if (!isConnect()) {
+	throw new Exception('{{401 - Accès non autorisé}}');
+}
+
+$h = function ($v): string { return htmlspecialchars((string) $v, ENT_QUOTES, 'UTF-8'); };
+$fmtDate = function ($v): string {
+	if ($v === null || $v === '') return '—';
+	$ts = strtotime((string) $v);
+	return $ts !== false ? date('d/m/Y', $ts) : (string) $v;
+};
+$statusMap = [
+	'planning' => ['Planifié', 'label-default'],
+	'brewing' => ['Brassage', 'label-warning'],
+	'fermenting' => ['Fermentation', 'label-success'],
+	'conditioning' => ['Conditionnement', 'label-info'],
+	'serving' => ['Service', 'label-success'],
+	'completed' => ['Terminé', 'label-primary'],
+];
+$statusLabel = function ($status) use ($statusMap): array {
+	$s = (string) $status;
+	return $statusMap[$s] ?? [$s, 'label-default'];
+};
+$activeStatus = ['brewing', 'fermenting'];
+
+/* equipements session configures : sessionId -> eqLogic id */
+$eqBySession = [];
+foreach (eqLogic::byType('jeefather') as $eqLogic) {
+	if ($eqLogic->getConfiguration('type', 'device') !== 'session') continue;
+	$sid = $eqLogic->getConfiguration('sessionId');
+	if ($sid) $eqBySession[(string) $sid] = $eqLogic->getId();
+}
+
+/* lignes depuis le cloud Grainfather */
+$rows = [];
+$devices = jeefather::getDevices();
+foreach (jeefather::getBrewSessions() as $s) {
+	$sid = (string) $s['id'];
+	$rows[] = [
+		'id' => $s['id'],
+		'name' => ($s['name'] !== '' ? $s['name'] : 'Batch') . ' (#' . $s['id'] . ')',
+		'eqId' => $eqBySession[$sid] ?? null,
+		'status' => $s['status'],
+		'temperature' => jeefatherParser::sessionCurrentTemperature($s, $devices),
+		'fg' => $s['targetGravity'],
+		'end' => $s['fermentationEndDate'],
+	];
+}
+
+/* repli si l'API cloud est KO : equipements session (execCmd = valeur courante cache) */
+if (count($rows) === 0) {
+	foreach (eqLogic::byType('jeefather') as $eqLogic) {
+		if ($eqLogic->getConfiguration('type', 'device') !== 'session') continue;
+		$val = function (string $logicalId) use ($eqLogic) {
+			$cmd = $eqLogic->getCmd('info', $logicalId);
+			return is_object($cmd) ? $cmd->execCmd() : null;
+		};
+		$sid = (string) $eqLogic->getConfiguration('sessionId');
+		$rows[] = [
+			'id' => $sid,
+			'name' => $eqLogic->getName(),
+			'eqId' => $eqLogic->getId(),
+			'status' => $val('status'),
+			'temperature' => $val('temperature'),
+			'fg' => $val('targetGravity'),
+			'end' => $val('fermentationEndDate'),
+		];
+	}
+}
+
+usort($rows, function ($a, $b) use ($activeStatus) {
+	$aa = in_array((string) $a['status'], $activeStatus, true) ? 1 : 0;
+	$bb = in_array((string) $b['status'], $activeStatus, true) ? 1 : 0;
+	if ($aa !== $bb) return $bb - $aa;
+	return (int) $b['id'] <=> (int) $a['id'];
+});
+?>
+<div class="panel panel-primary jeefather-panel">
+	<div class="panel-heading"><i class="fas fa-beer"></i> {{Brassins}} — <?php echo count($rows); ?></div>
+	<div class="panel-body table-responsive">
+		<?php if (count($rows) === 0): ?>
+			<div class="alert alert-info">{{Aucune brew session dans le cloud Grainfather}}</div>
+		<?php else: ?>
+		<table class="table table-condensed table-striped jeefather-sessions">
+			<thead>
+				<tr>
+					<th>{{Brassin}}</th>
+					<th>{{Statut}}</th>
+					<th>{{Temp.}}</th>
+					<th>{{FG}}</th>
+					<th>{{Fin estimée}}</th>
+				</tr>
+			</thead>
+			<tbody>
+			<?php foreach ($rows as $r):
+				[$label, $class] = $statusLabel($r['status']);
+			?>
+				<tr data-eqLogic_id="<?php echo $r['eqId'] ?: ''; ?>">
+					<td><?php echo $h($r['name']); ?></td>
+					<td><span class="label <?php echo $class; ?>"><?php echo $h($label); ?></span></td>
+					<td><?php echo $r['temperature'] !== null && $r['temperature'] !== '' ? number_format((float) $r['temperature'], 1) . ' °C' : '—'; ?></td>
+					<td><?php echo $r['fg'] !== null && $r['fg'] !== '' ? $h($r['fg']) : '—'; ?></td>
+					<td><?php echo $h($fmtDate($r['end'])); ?></td>
+				</tr>
+			<?php endforeach; ?>
+			</tbody>
+		</table>
+		<?php endif; ?>
+	</div>
+</div>

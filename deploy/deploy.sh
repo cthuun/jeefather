@@ -52,7 +52,7 @@ tar -xzf /tmp/jeefather.tgz -C '$PLUGIN_PATH'
 chown -R www-data:www-data '$PLUGIN_PATH/$PLUGIN_ID' 2>/dev/null || true
 chmod -R 755 '$PLUGIN_PATH/$PLUGIN_ID'
 echo '--- php -l ---'
-for f in '$PLUGIN_PATH/$PLUGIN_ID'/core/class/*.php '$PLUGIN_PATH/$PLUGIN_ID'/core/ajax/*.php '$PLUGIN_PATH/$PLUGIN_ID'/desktop/php/*.php '$PLUGIN_PATH/$PLUGIN_ID'/mobile/php/*.php; do php -l \"\$f\"; done
+for f in '$PLUGIN_PATH/$PLUGIN_ID'/core/class/*.php '$PLUGIN_PATH/$PLUGIN_ID'/core/ajax/*.php '$PLUGIN_PATH/$PLUGIN_ID'/desktop/php/*.php '$PLUGIN_PATH/$PLUGIN_ID'/mobile/php/*.php '$PLUGIN_PATH/$PLUGIN_ID'/mobile/html/*.html; do php -l \"\$f\"; done
 # PAS de vidage du cache Jeedom : /tmp/jeedom/cache contient les valeurs courantes des
 # commandes (value/valueDate/collectDate) ; le vider rend tous les widgets vides.
 # (ligne /var/www/html/cache supprimée aussi : inutile et risquée)

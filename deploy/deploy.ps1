@@ -115,7 +115,7 @@ if command -v unzip >/dev/null 2>&1; then unzip -oq /tmp/jeefather.zip -d '$Plug
 chown -R www-data:www-data '$PluginPath/$PLUGIN_ID' 2>/dev/null || true
 chmod -R 755 '$PluginPath/$PLUGIN_ID'
 echo '--- php -l ---'
-for f in '$PluginPath/$PLUGIN_ID'/core/class/*.php '$PluginPath/$PLUGIN_ID'/core/ajax/*.php '$PluginPath/$PLUGIN_ID'/desktop/php/*.php '$PluginPath/$PLUGIN_ID'/mobile/php/*.php; do php -l "`$f`"; done
+for f in '$PluginPath/$PLUGIN_ID'/core/class/*.php '$PluginPath/$PLUGIN_ID'/core/ajax/*.php '$PluginPath/$PLUGIN_ID'/desktop/php/*.php '$PluginPath/$PLUGIN_ID'/mobile/php/*.php '$PluginPath/$PLUGIN_ID'/mobile/html/*.html; do php -l "`$f`"; done
 # PAS de vidage du cache Jeedom ici : /tmp/jeedom/cache contient les valeurs courantes
 # des commandes (value/valueDate/collectDate) ; le vider rend tous les widgets vides.
 rm -f /tmp/jeefather.zip
